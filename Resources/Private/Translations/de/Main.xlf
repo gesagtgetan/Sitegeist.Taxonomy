@@ -91,6 +91,11 @@
                 <source>Create new taxon below</source>
                 <target>Neues Taxon anlegen unter</target>
             </trans-unit>
+
+            <trans-unit id="action.saveSorting" xml:space="preserve" approved="yes">
+                <source>Save sort order</source>
+                <target>Sortierung speichern</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

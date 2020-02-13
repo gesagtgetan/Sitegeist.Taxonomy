@@ -53,8 +53,75 @@
         <f:link.action action="newTaxonomy" class="neos-button neos-button-primary" title="" arguments="{parent: vocabulary.contextPath}" >
             {f:translate(id: 'taxon.create')}
         </f:link.action>
+
+        <f:form action="saveSorting" id="saveSortingForm" method="POST" class="neos-pull-right">
+            <f:form.hidden name="sorting" value="" id="sortingInput" />
+            <f:form.hidden name="vocabulary" value="{vocabulary.contextPath}" />
+            <button type="submit">{f:translate(id: 'action.saveSorting')}</button>
+        </f:form>
     </div>
 
     </f:security.ifAccess>
+    <style>
+        .grab { cursor: grab; }
+        tr:first-child .grab {display: none; }
+        .grabbed { box-shadow: 0 0 13px #fff; }
+        .grabCursor, .grabCursor * { cursor: grabbing !important; }
+    </style>
+    <script>
+        $("#saveSortingForm").submit(function (e) {
+            var json = [];
+            $("tbody tr").each(function () {
+                json.push($(this).data("path"));
+            });
+            $("#sortingInput").val(JSON.stringify(json));
+        });
+        // Adjusted from https://stackoverflow.com/a/42720364
+        $(".grab").mousedown(function (e) {
+            var draggedRow = $(e.target).closest("tr");
+            var startIndex = draggedRow.index();
+            var draggedParent = draggedRow.data("parent-path");
+            var draggedRowChildren = $("tr[data-parent-path='" + draggedRow.data("path") + "']");
+            var dragging;
 
+            // Change cursor to "grab"
+            $(document.body).addClass("grabCursor").css("userSelect", "none");
+
+            // Add shadow to dragged row and all its children
+            draggedRow.addClass("grabbed");
+            draggedRowChildren.addClass("grabbed");
+
+            function onMouseMove(e) {
+                dragging = true;
+                draggedRow.siblings().each(function() {
+                    var $this = $(this);
+                    var thisOffset = $this.offset().top;
+                    // Calculate whether the cursor is over $this element. This is true when the cursor is both below
+                    // the top and above the bottom of this element
+                    var cursorIsInThis = e.pageY > thisOffset && e.pageY < thisOffset + $this.outerHeight();
+                    var isInSameLevel = draggedParent === $this.data("parent-path");
+                    if (cursorIsInThis && isInSameLevel) {
+                        // Since we always insertBefore, if the user wants to move a row to the end of a table,
+                        // then they have to move it to the second-to-last position, and then move the last row up.
+                        draggedRow.insertBefore($this);
+                        draggedRowChildren.insertBefore($this);
+                        // Stop iterating over the siblings.
+                        return false;
+                    }
+                });
+            }
+
+            function onMouseUp () {
+                if (dragging && startIndex !== draggedRow.index()) {
+                    dragging = false;
+                    console.log("moved!");
+                }
+                $(document).unbind("mousemove", onMouseMove).unbind("mouseup", onMouseUp);
+                $(document.body).removeClass("grabCursor").css("userSelect", "none");
+                draggedRow.removeClass("grabbed");
+                draggedRowChildren.removeClass("grabbed");
+            }
+            $(document).mousemove(onMouseMove).mouseup(onMouseUp);
+        });
+    </script>
 </f:section>

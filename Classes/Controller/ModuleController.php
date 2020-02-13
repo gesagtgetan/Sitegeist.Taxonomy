@@ -12,6 +12,8 @@ namespace Sitegeist\Taxonomy\Controller;
  * source code.
  */
 
+use Doctrine\ORM\EntityManagerInterface;
+use Neos\ContentRepository\Domain\Model\NodeData;
 use Neos\Error\Messages\Error;
 use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
@@ -56,9 +58,9 @@ class ModuleController extends ActionController
 
     /**
      * @Flow\Inject
-     * @var PersistenceManagerInterface
+     * @var EntityManagerInterface
      */
-    protected $persistenceManager;
+    protected $entityManager;
 
     /**
      * @var string
@@ -467,6 +469,28 @@ class ModuleController extends ActionController
         $taxonomy->remove();
 
         $this->flashMessageContainer->addMessage(new Message(sprintf('Deleted taxonomy %s', $taxonomy->getPath())));
+        $this->redirect('vocabulary', null, null, ['vocabulary' => $vocabulary]);
+    }
+
+    /**
+     * @param NodeInterface $vocabulary
+     * @param string $sorting
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
+     */
+    public function saveSortingAction(NodeInterface $vocabulary, string $sorting)
+    {
+        $decoded = json_decode($sorting);
+        // The first row is always the root. We never change the sorting index of the root because that would
+        // change the order of the vocabularies on the module index page.
+        array_shift($decoded);
+        $query = $this->entityManager->createQuery(
+            'update ' . NodeData::class . ' n set n.index = :sortingIndex where n.path = :path'
+        );
+        // Calling `array_values` ensures that the indices are 0..n
+        foreach (array_values($decoded) as $idx => $path) {
+            $query->setParameters(['path' => $path, 'sortingIndex' => ($idx + 1) * 100]);
+            $query->execute();
+        }
         $this->redirect('vocabulary', null, null, ['vocabulary' => $vocabulary]);
     }
 }

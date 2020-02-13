@@ -1,7 +1,8 @@
 {namespace neos=Neos\Neos\ViewHelpers}
 
-<tr>
+<tr data-path="{taxon.node.path}" data-parent-path="{taxon.node.parent.path}">
     <td>
+        <span class="grab">&#9776;</span>
         <f:for each="{taxon.parents}" as="parentNode" iteration="iterator">
             &nbsp; &nbsp; &nbsp;
         </f:for>
