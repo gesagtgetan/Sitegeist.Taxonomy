@@ -33,7 +33,7 @@
                 <i class="fas fa-plus"></i>
             </f:link.action>
 
-            <f:form action="editTaxonomy" class="neos-inline">
+            <f:form action="editTaxonomy" class="neos-inline" method="GET">
                 <f:form.hidden name="taxonomy" value="{taxon.node.contextPath}" />
                 <f:form.button  title="{f:translate(id: 'generic.edit')}" data="{neos-toggle: 'tooltip'}" class="neos-button neos-button-primary">
                     <i class="fas fa-pencil-alt"></i>
