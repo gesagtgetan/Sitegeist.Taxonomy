@@ -19,6 +19,7 @@ use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\View\ViewInterface;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Neos\Service\UserService;
 use Sitegeist\Taxonomy\Service\DimensionService;
 use Sitegeist\Taxonomy\Service\TaxonomyService;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
@@ -84,6 +85,12 @@ class ModuleController extends ActionController
      * @var NodeInterface
      */
     protected $defaultRoot;
+
+    /**
+     * @Flow\Inject
+     * @var UserService
+     */
+    protected $userService;
 
     /**
      * Initialize the view
@@ -416,6 +423,44 @@ class ModuleController extends ActionController
         $this->view->assign('taxonomy', $taxonomy);
         $this->view->assign('defaultTaxonomy', $this->getNodeInDefaultDimensions($taxonomy));
 
+        $this->view->assign('nodes', $this->getNodesForTaxonomy($taxonomy));
+    }
+
+    /**
+     * @param NodeInterface $taxonomy
+     * @return array
+     */
+    private function getNodesForTaxonomy(NodeInterface $taxonomy)
+    {
+        $workspaceName = $this->userService->getPersonalWorkspaceName();
+        $contextConfig = [
+            'workspaceName' => $workspaceName,
+            'invisibleContentShown' => true
+        ];
+        $root = $this->contextFactory->create($contextConfig)->getRootNode();
+        $flowQuery = new FlowQuery([$root]);
+        $nodes = $flowQuery
+            ->find('[instanceof GesagtGetan.Taxonomy:Mixin.Taxonomies]')
+            ->get();
+        $filtered = [];
+        /** @var NodeInterface $node */
+        foreach ($nodes as $node) {
+            $refs = $node->getProperty('taxonomyReferences');
+            if (is_array($refs)) {
+                /** @var NodeInterface $ref */
+                foreach ($refs as $ref) {
+                    if ($ref->getIdentifier() === $taxonomy->getIdentifier()) {
+                        /** @var NodeInterface $document */
+                        $document = (new FlowQuery([$node]))->closest('[instanceof Neos.Neos:Document]')->get(0);
+                        $filtered[] = [
+                            'contextPath' => $document->getContextPath(),
+                            'label' => $node->getLabel()
+                        ];
+                    }
+                }
+            }
+        }
+        return $filtered;
     }
 
     /**
