@@ -6,6 +6,14 @@
                 <source>Taxonomy</source>
                 <target xml:lang="de">Taxonomie</target>
             </trans-unit>
+            <trans-unit id="properties.title" xml:space="preserve">
+                <source>Title</source>
+                <target xml:lang="de">Titel</target>
+            </trans-unit>
+            <trans-unit id="properties.description" xml:space="preserve">
+                <source>Description</source>
+                <target xml:lang="de">Beschreibung</target>
+            </trans-unit>
             <trans-unit id="ui.nodes" xml:space="preserve">
                 <source>Nodes</source>
                 <target xml:lang="de">Nodes</target>
